@@ -15,7 +15,7 @@ import { FiltersSidebar } from './components/FiltersSidebar';
 import { SponsoredBrandBanner } from './components/SponsoredBrandBanner';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetailModal } from './components/ProductDetailModal';
-import { CartDrawer } from './components/CartDrawer';
+import { CartDrawer, InstantOrder } from './components/CartDrawer';
 import {
   AccountOrdersModal,
   AllDepartmentsDrawer,
@@ -46,6 +46,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [instantOrder, setInstantOrder] = useState<InstantOrder | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState<{
@@ -260,7 +261,15 @@ export default function App() {
     selectedVariant?: string,
     qty = 1
   ) => {
-    handleAddToCart(product, selectedVariant, qty);
+    const resolvedVariant =
+      selectedVariant || product.variants?.[0]?.name || undefined;
+    const orderNum = `SG-408-${Math.floor(1000000 + Math.random() * 9000000)}`;
+    setInstantOrder({
+      orderNumber: orderNum,
+      product,
+      selectedVariant: resolvedVariant,
+      quantity: qty,
+    });
     setSelectedProduct(null);
     setIsCartOpen(true);
   };
@@ -314,7 +323,10 @@ export default function App() {
         onResetHome={handleResetHome}
         onQuickNavDepartment={handleQuickNavDepartment}
         cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
+        onOpenCart={() => {
+          setInstantOrder(null);
+          setIsCartOpen(true);
+        }}
         location={location}
         onOpenLocationModal={() => setIsLocationModalOpen(true)}
         onOpenAllMenu={() => setIsAllMenuOpen(true)}
@@ -397,7 +409,11 @@ export default function App() {
                       setSelectedProduct({ product: p, variant })
                     }
                     onAddToCart={(p, variant) => handleAddToCart(p, variant, 1)}
-                    onOpenCart={() => setIsCartOpen(true)}
+                    onBuyNow={(p, variant) => handleBuyNow(p, variant, 1)}
+                    onOpenCart={() => {
+                      setInstantOrder(null);
+                      setIsCartOpen(true);
+                    }}
                   />
                 ))}
               </div>
@@ -587,11 +603,13 @@ export default function App() {
       <CartDrawer
         isOpen={isCartOpen}
         items={cart}
+        instantOrder={instantOrder}
         location={location}
         onClose={() => setIsCartOpen(false)}
         onUpdateQty={handleUpdateCartQty}
         onRemoveItem={handleRemoveCartItem}
         onClearCart={() => setCart([])}
+        onClearInstantOrder={() => setInstantOrder(null)}
       />
 
       {/* Header Modals & Drawers */}

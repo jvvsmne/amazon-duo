@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Smartphone } from 'lucide-react';
+import { Check, Smartphone, Zap } from 'lucide-react';
 import { Product } from '../types';
 import { PrimeBadge, StarRating } from './AmazonMarks';
 
@@ -8,6 +8,7 @@ interface ProductCardProps {
   viewMode: 'grid' | 'list';
   onSelect: (product: Product, selectedVariant?: string) => void;
   onAddToCart: (product: Product, selectedVariant?: string) => void;
+  onBuyNow: (product: Product, selectedVariant?: string) => void;
   onOpenCart: () => void;
 }
 
@@ -16,6 +17,7 @@ export function ProductCard({
   viewMode,
   onSelect,
   onAddToCart,
+  onBuyNow,
   onOpenCart,
 }: ProductCardProps) {
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
@@ -215,39 +217,57 @@ export function ProductCard({
           </div>
         </div>
 
-        {/* Add to Cart Row */}
-        <div className="pt-2 flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={handleAdd}
-            className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
-              justAdded
-                ? 'bg-[#067D62] text-white border border-[#067D62]'
-                : 'bg-[#FFD814] hover:bg-[#F7CA00] active:bg-[#F0B800] text-[#0F1111] border border-[#FCD200] shadow-[0_1px_2px_rgba(15,17,17,0.1)]'
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Added to cart</span>
-              </>
-            ) : (
-              <span>Add to cart</span>
-            )}
-          </button>
-
-          {justAdded && (
+        {/* Action Buttons: Add to Cart + Prominent One-Click Buy Now */}
+        <div
+          className={`pt-2 flex flex-col gap-2 ${
+            viewMode === 'list' ? 'sm:max-w-[260px]' : ''
+          }`}
+        >
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenCart();
-              }}
-              className="text-[12px] font-medium text-[#007185] hover:text-[#C7511F] hover:underline cursor-pointer"
+              onClick={handleAdd}
+              className={`flex-1 py-1.5 px-4 rounded-full text-[13px] font-medium transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 ${
+                justAdded
+                  ? 'bg-[#067D62] text-white border border-[#067D62]'
+                  : 'bg-[#FFD814] hover:bg-[#F7CA00] active:bg-[#F0B800] text-[#0F1111] border border-[#FCD200] shadow-[0_1px_2px_rgba(15,17,17,0.1)]'
+              }`}
             >
-              View cart
+              {justAdded ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Added to cart</span>
+                </>
+              ) : (
+                <span>Add to cart</span>
+              )}
             </button>
-          )}
+
+            {justAdded && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenCart();
+                }}
+                className="text-[12px] font-medium text-[#007185] hover:text-[#C7511F] hover:underline cursor-pointer shrink-0"
+              >
+                View cart
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onBuyNow(product, activeVariant);
+            }}
+            className="w-full py-2 px-4 rounded-full bg-[#FFA41C] hover:bg-[#FA8900] active:bg-[#E77600] text-[#0F1111] border border-[#FF8F00] text-[14px] font-bold tracking-tight shadow-[0_2px_6px_rgba(255,164,28,0.35)] hover:shadow-[0_3px_8px_rgba(250,137,0,0.45)] transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
+          >
+            <Zap className="w-4 h-4 fill-[#0F1111] stroke-[#0F1111]" />
+            <span>Buy now</span>
+          </button>
         </div>
       </div>
     </article>

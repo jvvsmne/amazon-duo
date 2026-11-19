@@ -1,26 +1,37 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, CheckCircle2, ShoppingBag } from 'lucide-react';
-import { CartItem, DeliveryLocation } from '../types';
+import { X, Trash2, Plus, Minus, CheckCircle2, ShoppingBag, Zap } from 'lucide-react';
+import { CartItem, DeliveryLocation, Product } from '../types';
 import { PrimeBadge } from './AmazonMarks';
+
+export interface InstantOrder {
+  orderNumber: string;
+  product: Product;
+  selectedVariant?: string;
+  quantity: number;
+}
 
 interface CartDrawerProps {
   isOpen: boolean;
   items: CartItem[];
+  instantOrder: InstantOrder | null;
   location: DeliveryLocation;
   onClose: () => void;
   onUpdateQty: (productId: string, variant: string | undefined, delta: number) => void;
   onRemoveItem: (productId: string, variant: string | undefined) => void;
   onClearCart: () => void;
+  onClearInstantOrder: () => void;
 }
 
 export function CartDrawer({
   isOpen,
   items,
+  instantOrder,
   location,
   onClose,
   onUpdateQty,
   onRemoveItem,
   onClearCart,
+  onClearInstantOrder,
 }: CartDrawerProps) {
   const [checkoutDone, setCheckoutDone] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
@@ -44,6 +55,7 @@ export function CartDrawer({
 
   const handleClose = () => {
     setCheckoutDone(false);
+    onClearInstantOrder();
     onClose();
   };
 
@@ -62,10 +74,19 @@ export function CartDrawer({
         {/* Header */}
         <div className="bg-[#131921] text-white px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-[#FF9900]" />
-            <h2 className="text-[16px] font-bold">
-              Shopping Cart ({totalCount})
-            </h2>
+            {instantOrder ? (
+              <>
+                <Zap className="w-5 h-5 text-[#FFA41C] fill-[#FFA41C]" />
+                <h2 className="text-[16px] font-bold">1-Click Express Order</h2>
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="w-5 h-5 text-[#FF9900]" />
+                <h2 className="text-[16px] font-bold">
+                  Shopping Cart ({totalCount})
+                </h2>
+              </>
+            )}
           </div>
           <button
             type="button"
@@ -79,7 +100,71 @@ export function CartDrawer({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto thin-scroll p-4 space-y-4">
-          {checkoutDone ? (
+          {instantOrder ? (
+            <div className="border border-[#067D62]/30 bg-[#F2FBF8] rounded-[8px] p-5 space-y-4 my-4">
+              <div className="text-center space-y-2">
+                <CheckCircle2 className="w-11 h-11 text-[#067D62] mx-auto" />
+                <h3 className="text-[18px] font-bold text-[#0F1111]">
+                  1-Click Order Placed
+                </h3>
+                <p className="text-[13px] text-[#0F1111]">
+                  Order{' '}
+                  <span className="font-mono font-bold">
+                    #{instantOrder.orderNumber}
+                  </span>{' '}
+                  confirmed for{' '}
+                  <span className="font-semibold">
+                    {location.country} {location.postalCode}
+                  </span>
+                  .
+                </p>
+              </div>
+
+              <div className="bg-white border border-[#E7E7E7] rounded-[6px] p-3 flex gap-3 items-center">
+                <div className="w-16 h-16 bg-[#F7F7F7] rounded-[4px] p-1.5 flex items-center justify-center shrink-0">
+                  <img
+                    src={instantOrder.product.image}
+                    alt={instantOrder.product.title}
+                    referrerPolicy="no-referrer"
+                    className="max-h-full max-w-full object-contain mix-blend-multiply"
+                  />
+                </div>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="text-[13px] font-medium text-[#0F1111] line-clamp-2 leading-snug">
+                    {instantOrder.product.title}
+                  </p>
+                  {instantOrder.selectedVariant && (
+                    <p className="text-[11px] text-[#565959]">
+                      Colour: {instantOrder.selectedVariant}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-[13px] pt-0.5">
+                    <span className="text-[#565959] tabular-nums">
+                      Qty: {instantOrder.quantity}
+                    </span>
+                    <span className="font-bold text-[#0F1111] tabular-nums">
+                      S$
+                      {(
+                        instantOrder.product.price * instantOrder.quantity
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[12px] text-[#565959] text-center">
+                {instantOrder.product.deliveryText}
+              </p>
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-full py-2 px-5 rounded-full bg-[#FFD814] hover:bg-[#F7CA00] text-[#0F1111] text-[13px] font-medium cursor-pointer"
+              >
+                Continue shopping
+              </button>
+            </div>
+          ) : checkoutDone ? (
             <div className="border border-[#067D62]/30 bg-[#F2FBF8] rounded-[8px] p-5 space-y-3 text-center my-8">
               <CheckCircle2 className="w-11 h-11 text-[#067D62] mx-auto" />
               <h3 className="text-[18px] font-bold text-[#0F1111]">
@@ -246,7 +331,7 @@ export function CartDrawer({
         </div>
 
         {/* Footer */}
-        {items.length > 0 && !checkoutDone && (
+        {!instantOrder && items.length > 0 && !checkoutDone && (
           <div className="border-t border-[#E7E7E7] bg-[#F7F8FA] p-4 space-y-3">
             <div className="flex items-center justify-between text-[16px]">
               <span className="text-[#0F1111]">
