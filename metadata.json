@@ -1,0 +1,6 @@
+{
+  "name": "Amazon.sg : iphone duo",
+  "description": "Amazon.sg search results interface for iphone duo featuring interactive refinements, Singapore Dollar pricing, product quick view, and shopping cart.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
